@@ -11,5 +11,5 @@ interface CityDAO {
     suspend fun getAllCities(): List<City>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUser(city: City)
+    suspend fun insertCity(city: City)
 }
