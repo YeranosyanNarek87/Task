@@ -24,7 +24,6 @@ class MainViewModel(
         userIntent.trySend(MyIntent.Clicked(it))
     }
 
-
     fun fetchData() {
         viewModelScope.launch {
             _state.value = FirstState.LoadedData(repository.getMyFavoriteCity())

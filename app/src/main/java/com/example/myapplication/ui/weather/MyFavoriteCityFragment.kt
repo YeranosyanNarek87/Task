@@ -13,10 +13,9 @@ import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.myapplication.data.CityData
 import com.example.myapplication.data.CityWeatherData
-import com.example.myapplication.data.CityWeatherInfo
 import com.example.myapplication.databinding.FragmentMyFavoriteCityBinding
 import com.example.myapplication.mvi.SecondState
-import com.example.myapplication.repo.MyRepositoryImpl
+import com.example.myapplication.repo.LocalDataProviderImpl.Companion.YEREVAN
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -29,10 +28,10 @@ class MyFavoriteCityFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel.fetchData(
-            arguments?.getParcelable("data") ?: CityData(
+            arguments?.getParcelable("data", CityData::class.java) ?: CityData(
                 "yerevan",
                 name = "Yerevan",
-                avatar = MyRepositoryImpl.YEREVAN
+                avatar = YEREVAN
             )
         )
     }
@@ -65,6 +64,7 @@ class MyFavoriteCityFragment : Fragment() {
                     is SecondState.Error -> {
                         binding.loading.isVisible = false
                         Toast.makeText(context, it.error, Toast.LENGTH_LONG).show()
+                        parentFragmentManager.popBackStack()
                     }
                 }
             }
@@ -92,5 +92,4 @@ class MyFavoriteCityFragment : Fragment() {
             arguments = bundleOf("data" to cityData)
         }
     }
-
 }

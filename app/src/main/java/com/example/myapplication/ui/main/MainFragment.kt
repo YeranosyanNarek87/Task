@@ -1,10 +1,14 @@
 package com.example.myapplication.ui.main
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.flowWithLifecycle
@@ -12,13 +16,14 @@ import androidx.lifecycle.lifecycleScope
 import com.example.myapplication.R
 import com.example.myapplication.data.CityData
 import com.example.myapplication.databinding.FragmentMainBinding
-import com.example.myapplication.mvi.MyIntent
 import com.example.myapplication.mvi.FirstState
+import com.example.myapplication.mvi.MyIntent
 import com.example.myapplication.ui.weather.MyFavoriteCityFragment
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import org.koin.androidx.viewmodel.ext.android.viewModel
+
 
 class MainFragment : Fragment() {
 
@@ -71,15 +76,25 @@ class MainFragment : Fragment() {
             .onEach {
                 when (it) {
                     is MyIntent.Clicked -> {
-                        parentFragmentManager
-                            .beginTransaction()
-                            .add(R.id.container, MyFavoriteCityFragment.newInstance(it.data))
-                            .addToBackStack(null)
-                            .commit()
+                        if (checkNetwork()) {
+                            parentFragmentManager
+                                .beginTransaction()
+                                .add(R.id.container, MyFavoriteCityFragment.newInstance(it.data))
+                                .addToBackStack(null)
+                                .commit()
+                        } else {
+                            Toast.makeText(context, "Please check your network connection", Toast.LENGTH_LONG).show()
+                        }
                     }
                 }
-            }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
+            }.launchIn(viewLifecycleOwner.lifecycleScope)
+    }
+
+    private fun checkNetwork(): Boolean {
+        val connMgr =
+            activity?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connMgr.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
     }
 
     private fun renderList(cities: List<CityData>) {

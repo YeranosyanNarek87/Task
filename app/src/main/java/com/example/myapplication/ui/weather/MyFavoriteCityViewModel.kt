@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.weather
 
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.CityData
@@ -20,7 +21,7 @@ class MyFavoriteCityViewModel(private val repository: MyRepository) : ViewModel(
         viewModelScope.launch {
             val result = repository.getCityWeatherInfo(data.id)
             if (result == null) {
-                _state.value = SecondState.Error("Error")
+                _state.value = SecondState.Error("Something went wrong")
             } else {
                 _state.value = SecondState.LoadedData(
                     CityWeatherData(
