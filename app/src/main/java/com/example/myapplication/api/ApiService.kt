@@ -7,7 +7,7 @@ import retrofit2.http.Query
 
 interface ApiService {
 
-    @GET("current.jsonc")
+    @GET("current.json")
    suspend fun getWeatherInfo(
         @Query("key") apiKey: String? = "aaad4aee7c374cb1966185323230304",
         @Query("q") location: String?,
