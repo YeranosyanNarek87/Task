@@ -1,6 +1,8 @@
 package com.example.myapplication.di
 
+import androidx.room.Room
 import com.example.myapplication.api.ApiService
+import com.example.myapplication.api.db.AppDatabase
 import com.example.myapplication.repo.LocalDataProvider
 import com.example.myapplication.repo.LocalDataProviderImpl
 import com.example.myapplication.repo.MyRepository
@@ -10,6 +12,7 @@ import com.example.myapplication.ui.weather.MyFavoriteCityViewModel
 import com.google.gson.Gson
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import okhttp3.OkHttpClient
+import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -25,6 +28,13 @@ val appModule = module {
         .client(OkHttpClient())
         .addCallAdapterFactory(CoroutineCallAdapterFactory())
         .build()
+
+    single {
+        Room.databaseBuilder(androidContext(), AppDatabase::class.java, "my_database")
+            .build()
+    }
+
+    single { get<AppDatabase>().myDao() }
 
     single<ApiService> { retrofit.create(ApiService::class.java) }
     factory<LocalDataProvider> { LocalDataProviderImpl(gson = Gson()) }

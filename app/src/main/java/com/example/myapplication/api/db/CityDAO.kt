@@ -7,9 +7,9 @@ import androidx.room.Query
 
 @Dao
 interface CityDAO {
-    @Query("SELECT * FROM user")
-    suspend fun getAllUsers(): List<City>
+    @Query("SELECT * FROM city")
+    suspend fun getAllCities(): List<City>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUser(user: City)
+    suspend fun insertUser(city: City)
 }
