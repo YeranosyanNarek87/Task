@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">Task For New Job </string>
-    <string name="start">Go to any City </string>
+    <string name="app_name">App name </string>
+    <string name="start">Here will be main fragment logics with display in screen </string>
 </resources>

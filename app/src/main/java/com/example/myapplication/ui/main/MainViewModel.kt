@@ -1,32 +1,46 @@
 package com.example.myapplication.ui.main
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myapplication.data.CityData
-import com.example.myapplication.mvi.MyIntent
-import com.example.myapplication.mvi.FirstState
-import com.example.myapplication.repo.MyRepository
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import com.example.myapplication.base.BaseReducer
+import com.example.myapplication.base.BaseViewModel
+import com.example.myapplication.domain.usecases.MainScreenDataUseCase
+import com.example.myapplication.mvi.main.MainAction
+import com.example.myapplication.mvi.main.MainIntent
+import com.example.myapplication.mvi.main.MainReducer
+import com.example.myapplication.mvi.main.MainState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainViewModel(
-    private val repository: MyRepository
-) : ViewModel() {
+    private val mainScreenData: MainScreenDataUseCase
+) : BaseViewModel<MainIntent, MainAction, MainState, BaseReducer<MainState, MainAction>>(
+    MainState()
+) {
 
-    val userIntent = Channel<MyIntent>(Channel.BUFFERED)
-    private val _state = MutableStateFlow<FirstState>(FirstState.Loading)
-    val state: StateFlow<FirstState>
-        get() = _state
+    override val reducer = MainReducer()
 
-    val onItemClick: (CityData) -> Unit = {
-        userIntent.trySend(MyIntent.Clicked(it))
-    }
-
-    fun fetchData() {
+    init {
         viewModelScope.launch {
-            _state.value = FirstState.LoadedData(repository.getMyFavoriteCity())
+            dispatchIntent(MainIntent.Init(data = mainScreenData.loadMainData()))
         }
     }
+
+    override fun call(action: MainAction) {
+        when (action) {
+            is MainAction.StartLoading -> {
+                viewModelScope.launch(Dispatchers.Main) {
+                    dispatchIntent(MainIntent.EndLoading(mainScreenData.loadMainData()))
+                }
+            }
+            else -> return
+        }
+    }
+
+    override fun handleIntent(intent: MainIntent): MainAction =
+        when (intent) {
+            is MainIntent.Init -> MainAction.Init(data = intent.data)
+            is MainIntent.StartLoading -> MainAction.StartLoading
+            is MainIntent.EndLoading -> MainAction.EndLoading
+            is MainIntent.HandleClick -> MainAction.HandleClick
+        }
 }

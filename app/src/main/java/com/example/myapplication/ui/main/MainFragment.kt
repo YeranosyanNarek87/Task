@@ -1,39 +1,27 @@
 package com.example.myapplication.ui.main
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.Network
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.content.ContextCompat.getSystemService
-import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.lifecycleScope
-import com.example.myapplication.R
-import com.example.myapplication.data.CityData
+import androidx.core.os.bundleOf
+import com.example.myapplication.base.BaseFragment
 import com.example.myapplication.databinding.FragmentMainBinding
-import com.example.myapplication.mvi.FirstState
-import com.example.myapplication.mvi.MyIntent
-import com.example.myapplication.ui.weather.MyFavoriteCityFragment
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.receiveAsFlow
+import com.example.myapplication.domain.ItemData
+import com.example.myapplication.mvi.main.MainAction
+import com.example.myapplication.mvi.main.MainIntent
+import com.example.myapplication.mvi.main.MainState
+import com.example.myapplication.ui.util.MyAdapter
 import org.koin.androidx.viewmodel.ext.android.viewModel
+class MainFragment :
+    BaseFragment<MainIntent, MainAction, MainState, MainViewModel>() {
 
-
-class MainFragment : Fragment() {
-
-    private val viewModel: MainViewModel by viewModel()
+    override val viewModel: MainViewModel by viewModel()
     private lateinit var binding: FragmentMainBinding
-    private val adapter: MyAdapter by lazy { MyAdapter(viewModel.onItemClick) }
+    private val adapter: MyAdapter by lazy { MyAdapter(onItemClick)}
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        viewModel.fetchData()
+    private val onItemClick: (ItemData) -> Unit = {
+        dispatchIntent(MainIntent.HandleClick(it))
     }
 
     override fun onCreateView(
@@ -46,62 +34,62 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        /**
+        Set adapter
+         */
         binding.itemList.adapter = adapter
-        observeViewModel()
+        /**
+        Here handel any view click associate the screen: for example start button click
+         */
+        binding.start.setOnClickListener {
+            dispatchIntent(MainIntent.StartLoading)
+        }
     }
 
-    private fun observeViewModel() {
-        viewModel.state
-            .flowWithLifecycle(viewLifecycleOwner.lifecycle)
-            .onEach {
-                when (it) {
-                    is FirstState.Loading -> {
-                        binding.loading.isVisible = true
-                    }
-                    is FirstState.LoadedData -> {
-                        binding.loading.isVisible = false
-                        renderList(it.data)
-                    }
-                    is FirstState.Error -> {
-                        binding.loading.isVisible = false
-                        Toast.makeText(context, it.error, Toast.LENGTH_LONG).show()
-                    }
+    override fun render(state: MainState) {
+        with(state) {
+            when {
+                start -> {
+                    /**
+                    Here draw your logic in the screen
+                     */
+                }
+                showLoading -> {
+                    /**
+                    Here show the loading animation when data will be loaded
+                     */
+                }
+                hideLoading -> {
+                    /**
+                    Here hide loading and open second fragment
+                     */
                 }
             }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
-
-        viewModel.userIntent
-            .receiveAsFlow()
-            .flowWithLifecycle(viewLifecycleOwner.lifecycle)
-            .onEach {
-                when (it) {
-                    is MyIntent.Clicked -> {
-                        if (checkNetwork()) {
-                            parentFragmentManager
-                                .beginTransaction()
-                                .add(R.id.container, MyFavoriteCityFragment.newInstance(it.data))
-                                .addToBackStack(null)
-                                .commit()
-                        } else {
-                            Toast.makeText(context, "Please check your network connection", Toast.LENGTH_LONG).show()
-                        }
-                    }
-                }
-            }.launchIn(viewLifecycleOwner.lifecycleScope)
+        }
     }
 
-    private fun checkNetwork(): Boolean {
-        val connMgr =
-            activity?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networkInfo = connMgr.activeNetworkInfo
-        return networkInfo != null && networkInfo.isConnected
+    private fun renderList(data: List<ItemData>) {
+        /**
+        Set items for adapter
+         */
+        adapter.submitList(data)
     }
 
-    private fun renderList(cities: List<CityData>) {
-        adapter.submitList(cities)
+    private fun showHideLoading(visibility: Boolean) {
+        /**
+        Show loading
+         */
+    }
+
+    private fun openNextScreen() {
+        /**
+        Open next fragment if needed
+         */
     }
 
     companion object {
-        fun newInstance() = MainFragment()
+        fun newInstance(data: Any?) = MainFragment().apply {
+            arguments = bundleOf("data" to data)
+        }
     }
 }

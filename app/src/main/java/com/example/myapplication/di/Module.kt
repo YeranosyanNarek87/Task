@@ -1,18 +1,22 @@
 package com.example.myapplication.di
 
-import androidx.room.Room
 import com.example.myapplication.api.ApiService
 import com.example.myapplication.api.db.AppDatabase
-import com.example.myapplication.repo.LocalDataProvider
-import com.example.myapplication.repo.LocalDataProviderImpl
-import com.example.myapplication.repo.MyRepository
-import com.example.myapplication.repo.MyRepositoryImpl
+import com.example.myapplication.data.repo.LocalDataProvider
+import com.example.myapplication.data.repo.LocalDataProviderImpl
+import com.example.myapplication.data.repo.MyRepository
+import com.example.myapplication.data.repo.MyRepositoryImpl
+import com.example.myapplication.domain.usecaseimpl.LoadNextScreenDataUseCaseImpl
+import com.example.myapplication.domain.usecaseimpl.MainScreenDataUseCaseImpl
+import com.example.myapplication.domain.usecaseimpl.WelcomeScreenDataUseCaseImpl
+import com.example.myapplication.domain.usecases.LoadNextScreenDataUseCase
+import com.example.myapplication.domain.usecases.MainScreenDataUseCase
+import com.example.myapplication.domain.usecases.WelcomeScreenDataUseCase
 import com.example.myapplication.ui.main.MainViewModel
-import com.example.myapplication.ui.weather.MyFavoriteCityViewModel
+import com.example.myapplication.ui.welcome.WelcomeViewModel
 import com.google.gson.Gson
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import okhttp3.OkHttpClient
-import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -29,18 +33,22 @@ val appModule = module {
         .addCallAdapterFactory(CoroutineCallAdapterFactory())
         .build()
 
-    single {
-        Room.databaseBuilder(androidContext(), AppDatabase::class.java, "my_database")
-            .build()
-    }
-
     single { get<AppDatabase>().myDao() }
+    //single<AppDatabase> { get<getInstance()>() }
 
     single<ApiService> { retrofit.create(ApiService::class.java) }
     factory<LocalDataProvider> { LocalDataProviderImpl(gson = Gson()) }
 
     single<MyRepository> { MyRepositoryImpl(service = get(), localDataProvider = get()) }
+    single<MainScreenDataUseCase> { MainScreenDataUseCaseImpl() }
+    single<WelcomeScreenDataUseCase> { WelcomeScreenDataUseCaseImpl() }
+    single<LoadNextScreenDataUseCase> { LoadNextScreenDataUseCaseImpl(repository = get()) }
 
-    viewModel { MainViewModel(repository = get()) }
-    viewModel { MyFavoriteCityViewModel(repository = get()) }
+    viewModel { MainViewModel(mainScreenData = get()) }
+    viewModel {
+        WelcomeViewModel(
+            welcomeScreenData = get(),
+            nextScreenData = get()
+        )
+    }
 }

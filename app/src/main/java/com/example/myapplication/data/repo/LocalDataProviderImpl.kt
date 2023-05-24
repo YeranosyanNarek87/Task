@@ -1,7 +1,5 @@
-package com.example.myapplication.repo
+package com.example.myapplication.data.repo
 
-import com.example.myapplication.data.CityData
-import com.example.myapplication.data.CityWeatherInfo
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -13,7 +11,7 @@ import java.io.IOException
 class LocalDataProviderImpl(
     private val gson: Gson
 ) : LocalDataProvider {
-    override suspend fun saveData(data: CityWeatherInfo) = withContext(Dispatchers.IO) {
+    override suspend fun saveData(data: Any) = withContext(Dispatchers.IO) {
         val jsonString = gson.toJson(data)
         try {
             val file = File("context.filesDir", FILE_NAME)
@@ -26,26 +24,16 @@ class LocalDataProviderImpl(
         }
     }
 
-    override suspend fun getFavData(): List<CityData> = listOf(
-        CityData("yerevan", name = "Yerevan", avatar = YEREVAN),
-        CityData("moscow", name = "Moscow", avatar = MOSCOW),
-        CityData("paris", name = "Paris", avatar = PARIS),
-        CityData("london", name = "London", avatar = LONDON),
-        CityData("madrid", name = "Madrid", avatar = MADRID),
-        CityData("barcelona", name = "Barcelona", avatar = BARCELONA),
-        CityData("roma", name = "Roma", avatar = ROMA),
-        CityData("milan", name = "Milan", avatar = MILAN),
-        CityData("pragua", name = "Pragua", avatar = PRAGUE),
-    )
+    override suspend fun getFavData(): List<Any> = emptyList()
 
 
-    override suspend fun getData(): CityWeatherInfo? {
-        var data: CityWeatherInfo? = null
+    override suspend fun getData(): Any? {
+        var data: Any? = null
         withContext(Dispatchers.IO) {
             try {
                 val file = File("context.filesDir", FILE_NAME)
                 val reader = FileReader(file)
-                data = gson.fromJson(reader, CityWeatherInfo::class.java)
+                data = gson.fromJson(reader, Any::class.java)
                 reader.close()
                 return@withContext
             } catch (e: IOException) {

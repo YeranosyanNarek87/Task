@@ -1,8 +1,12 @@
-package com.example.myapplication.data
+package com.example.myapplication.api.db
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity
 data class CityWeatherData(
+    @PrimaryKey val id: String,
     val name: String,
-    val id: String,
     val avatar: String,
     val country: String,
     val region: String,
